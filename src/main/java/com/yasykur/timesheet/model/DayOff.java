@@ -10,7 +10,6 @@ import lombok.Data;
 @Data
 public class DayOff {
     @Id
-    private String dayOffDate;
-
-    private String description;
+    private String tanggal;
+    private String keterangan;
 }
