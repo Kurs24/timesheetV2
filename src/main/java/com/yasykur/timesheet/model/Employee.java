@@ -23,5 +23,6 @@ public class Employee {
 
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
     private EmployeeStatus status;
 }
