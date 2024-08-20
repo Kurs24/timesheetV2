@@ -2,11 +2,13 @@ package com.yasykur.timesheet.model;
 
 import com.yasykur.timesheet.util.EmployeeStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Entity
 @Table(name = "tb_m_employee")
+@Builder
 public class Employee {
 
     @Id
