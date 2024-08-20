@@ -32,4 +32,13 @@ public class EmployeeController {
             throw new RuntimeException(e);
         }
     }
+
+    @DeleteMapping("employee/{id}")
+    public ResponseEntity<Object> deleteEmployee(@PathVariable("id") Integer id) {
+        try {
+            return CustomResponse.generate(HttpStatus.OK, "Delete Employee Success", employeeService.deleteEmployee(id));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
