@@ -54,4 +54,12 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     @JsonIgnore
     private List<ProjectTimesheet> projectTimesheets;
+
+    @OneToMany(mappedBy = "projectLeader")
+    @JsonIgnore
+    private List<Approval> projectLeadApproval;
+
+    @OneToMany(mappedBy = "humanResource")
+    @JsonIgnore
+    private List<Approval> humanResourceApproval;
 }
