@@ -36,4 +36,8 @@ public class Employee {
     @OneToOne(mappedBy = "employee")
     @JsonIgnore
     private Credential credential;
+
+    @OneToOne(mappedBy = "employee")
+    @JsonIgnore
+    private Pin pin;
 }
