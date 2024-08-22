@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "tb_m_employee")
@@ -40,4 +42,12 @@ public class Employee {
     @OneToOne(mappedBy = "employee")
     @JsonIgnore
     private Pin pin;
+
+    @OneToMany(mappedBy = "projectLeader")
+    @JsonIgnore
+    private List<Project> projectHandledAsLead;
+
+    @OneToMany(mappedBy = "employee")
+    @JsonIgnore
+    private List<ProjectAssignment> projectAsMember;
 }
