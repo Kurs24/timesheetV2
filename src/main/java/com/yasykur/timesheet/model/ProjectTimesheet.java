@@ -1,9 +1,12 @@
 package com.yasykur.timesheet.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yasykur.timesheet.util.SubmissionTime;
 import com.yasykur.timesheet.util.SubmissionType;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.List;
 
 @Entity
 @Table(name = "tb_m_project_timesheet")
@@ -28,4 +31,8 @@ public class ProjectTimesheet {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
+
+    @OneToMany(mappedBy = "projectTimesheet")
+    @JsonIgnore
+    private List<DailyTimesheet> dailyTimesheets;
 }
