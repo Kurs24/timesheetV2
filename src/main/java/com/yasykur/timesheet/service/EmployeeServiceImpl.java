@@ -5,11 +5,18 @@ import com.yasykur.timesheet.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+
+    @Override
+    public List<Employee> getEmployeeList() {
+        return employeeRepository.findAll();
+    }
 
     @Override
     public Integer createEmployee(Employee data) {

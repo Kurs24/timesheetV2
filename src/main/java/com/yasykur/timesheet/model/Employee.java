@@ -1,5 +1,6 @@
 package com.yasykur.timesheet.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yasykur.timesheet.util.EmployeeStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,4 +32,8 @@ public class Employee {
 
     @Enumerated(EnumType.STRING)
     private EmployeeStatus status;
+
+    @OneToOne(mappedBy = "employee")
+    @JsonIgnore
+    private Credential credential;
 }

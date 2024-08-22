@@ -17,6 +17,16 @@ public class EmployeeController {
 
     private final EmployeeServiceImpl employeeService;
 
+    @GetMapping("employee")
+    public ResponseEntity<Object> getEmployeeList() {
+        try {
+            return CustomResponse.generate(HttpStatus.OK, "Successfully Fetch Employee Data", employeeService.getEmployeeList());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     @PostMapping("employee")
     public ResponseEntity<Object> createEmployee(@RequestBody EmployeeDTO data) {
         try {
