@@ -50,4 +50,8 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     @JsonIgnore
     private List<ProjectAssignment> projectAsMember;
+
+    @OneToMany(mappedBy = "employee")
+    @JsonIgnore
+    private List<ProjectTimesheet> projectTimesheets;
 }

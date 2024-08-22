@@ -35,4 +35,8 @@ public class Project {
     @OneToMany(mappedBy = "project")
     @JsonIgnore
     private List<ProjectAssignment> assignedMember;
+
+    @OneToMany(mappedBy = "project")
+    @JsonIgnore
+    private List<ProjectTimesheet> projectTimesheets;
 }
