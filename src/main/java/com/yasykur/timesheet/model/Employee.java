@@ -62,4 +62,8 @@ public class Employee {
     @OneToMany(mappedBy = "humanResource")
     @JsonIgnore
     private List<Approval> humanResourceApproval;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 }
