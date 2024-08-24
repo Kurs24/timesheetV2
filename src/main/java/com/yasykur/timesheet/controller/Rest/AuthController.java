@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v2/auth")
@@ -76,6 +73,21 @@ public class AuthController {
             }
 
             return CustomResponse.generate(HttpStatus.INTERNAL_SERVER_ERROR, "Create new Employee Failed");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("verify-pin/")
+    public ResponseEntity<Object> verifyPin(@RequestParam("pin") String pin) {
+        try {
+            boolean isPinVerified = pinService.verifyPin(pin);
+
+            if (!isPinVerified) {
+                return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Pin Invalid, please Request another Pin");
+            }
+
+            return CustomResponse.generate(HttpStatus.OK, "Pin Verified");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
