@@ -20,7 +20,8 @@ public class EmployeeController {
     @GetMapping("employee")
     public ResponseEntity<Object> getEmployeeList() {
         try {
-            return CustomResponse.generate(HttpStatus.OK, "Successfully Fetch Employee Data", employeeService.getEmployeeList());
+            return CustomResponse.generate(HttpStatus.OK, "Successfully Fetch Employee Data",
+                    employeeService.getEmployeeList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -37,7 +38,8 @@ public class EmployeeController {
                     .phoneNumber(data.getPhoneNumber())
                     .status(EmployeeStatus.ACTIVE)
                     .build();
-            return CustomResponse.generate(HttpStatus.CREATED, "Successfully Create New Employee", employeeService.createEmployee(newEmployee));
+            return CustomResponse.generate(HttpStatus.CREATED, "Successfully Create New Employee",
+                    employeeService.createEmployee(newEmployee));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -46,7 +48,8 @@ public class EmployeeController {
     @DeleteMapping("employee/{id}")
     public ResponseEntity<Object> deleteEmployee(@PathVariable("id") Integer id) {
         try {
-            return CustomResponse.generate(HttpStatus.OK, "Delete Employee Success", employeeService.deleteEmployee(id));
+            return CustomResponse.generate(HttpStatus.OK, "Delete Employee Success",
+                    employeeService.deleteEmployee(id));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

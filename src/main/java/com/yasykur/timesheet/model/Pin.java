@@ -26,7 +26,7 @@ public class Pin {
     @JoinColumn(name = "id")
     private Employee employee;
 
-    public Pin (Integer id, String pin) {
+    public Pin(Integer id, String pin) {
         this.id = id;
         this.pin = pin;
         expireDate = LocalDateTime.now().plusHours(12);
