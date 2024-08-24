@@ -4,12 +4,14 @@ import com.yasykur.timesheet.DTO.LoginDTO;
 import com.yasykur.timesheet.DTO.RegisterDTO;
 import com.yasykur.timesheet.handler.CustomResponse;
 import com.yasykur.timesheet.model.Employee;
+import com.yasykur.timesheet.model.Pin;
 import com.yasykur.timesheet.model.Role;
 import com.yasykur.timesheet.service.*;
 import com.yasykur.timesheet.util.EmployeeStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ public class AuthController {
     private final EmployeeService employeeService;
     private final EmailService emailService;
     private final RoleService roleService;
+    private final PinService pinService;
 
     @PostMapping("login")
     public ResponseEntity<Object> login(LoginDTO loginData) {
@@ -37,6 +40,7 @@ public class AuthController {
 
 
     @PostMapping("register")
+    @Transactional
     public ResponseEntity<Object> register(@RequestBody RegisterDTO registerDTO) {
         try {
             Employee foundEmployee = employeeService.getEmployeeByEmail(registerDTO.getEmail());
@@ -62,9 +66,12 @@ public class AuthController {
 
             Integer idCreated = employeeService.createEmployee(newEmployee);
 
+            Pin createdPin = pinService.createPin(idCreated);
+
             if (idCreated != 0) {
                 // add link for FE verify
-                emailService.sendMail("Set Password for your Account", registerDTO.getEmail(), registerDTO.getEmail(), "Create Account Success, Please Set Your Password");
+                emailService.sendMail("Set Password for your Account", registerDTO.getEmail(), registerDTO.getEmail(),
+                        "Create Account Success, Please Set Your Password using this pin " + createdPin.getPin());
                 return CustomResponse.generate(HttpStatus.CREATED, "Successfully Create New Employee");
             }
 
