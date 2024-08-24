@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -16,6 +17,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> getEmployeeList() {
         return employeeRepository.findAll();
+    }
+
+    @Override
+    public Employee getEmployeeByEmail(String email) {
+        return employeeRepository.findByEmail(email).orElse(null);
     }
 
     @Override

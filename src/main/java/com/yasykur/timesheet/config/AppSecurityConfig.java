@@ -26,7 +26,9 @@ public class AppSecurityConfig {
         httpSecurity.cors(Customizer.withDefaults());
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.authorizeHttpRequests((request) ->
-                request.requestMatchers("/api/v2/employee/**").permitAll()
+                request
+                        .requestMatchers("/api/v2/employee/**").permitAll()
+                        .anyRequest().permitAll()
         );
         return httpSecurity.build();
     }
