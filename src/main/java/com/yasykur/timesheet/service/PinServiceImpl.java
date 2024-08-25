@@ -30,12 +30,16 @@ public class PinServiceImpl implements PinService {
             return false;
         }
 
-        if (foundPin.getExpireDate().isBefore(LocalDateTime.now())) {
-            return false;
-        }
+        return !foundPin.getExpireDate().isBefore(LocalDateTime.now());
+    }
 
-        pinRepository.delete(foundPin);
+    @Override
+    public Pin getPinByPin(String pin) {
+        return pinRepository.findByPin(pin).orElse(null);
+    }
 
-        return true;
+    @Override
+    public Integer deletePin(String pin) {
+        return pinRepository.deleteByPin(pin);
     }
 }

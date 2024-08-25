@@ -2,6 +2,7 @@ package com.yasykur.timesheet.controller.Rest;
 
 import com.yasykur.timesheet.DTO.LoginDTO;
 import com.yasykur.timesheet.DTO.RegisterDTO;
+import com.yasykur.timesheet.DTO.SetPasswordDTO;
 import com.yasykur.timesheet.handler.CustomResponse;
 import com.yasykur.timesheet.model.Employee;
 import com.yasykur.timesheet.model.Pin;
@@ -11,6 +12,7 @@ import com.yasykur.timesheet.util.EmployeeStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,8 @@ public class AuthController {
     private final EmailService emailService;
     private final RoleService roleService;
     private final PinService pinService;
+    private final PasswordEncoder passwordEncoder;
+    private final CredentialService credentialService;
 
     @PostMapping("login")
     public ResponseEntity<Object> login(LoginDTO loginData) {
@@ -91,5 +95,26 @@ public class AuthController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("set-password")
+    @Transactional
+    public ResponseEntity<Object> setPassword(@RequestBody SetPasswordDTO data, @RequestParam("pin") String pin) {
+        if (data.getOldPassword() != null) {
+            return CustomResponse.generate(HttpStatus.OK, "testing");
+        }
+
+        boolean isPinVerified = pinService.verifyPin(pin);
+
+        if (!isPinVerified) {
+            return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Pin Invalid, please Request another Pin");
+        }
+
+        Pin foundPin = pinService.getPinByPin(pin);
+
+        credentialService.createCredential(foundPin.getId(), passwordEncoder.encode(data.getPassword()));
+
+        pinService.deletePin(pin);
+        return CustomResponse.generate(HttpStatus.OK, "Your password has been set!");
     }
 }

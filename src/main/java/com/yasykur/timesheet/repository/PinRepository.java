@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface PinRepository extends JpaRepository<Pin, Integer> {
     Optional<Pin> findByPin(String pin);
+    Integer deleteByPin(String pin);
 }
