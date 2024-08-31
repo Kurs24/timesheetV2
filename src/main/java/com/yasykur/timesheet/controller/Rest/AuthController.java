@@ -3,6 +3,8 @@ package com.yasykur.timesheet.controller.Rest;
 import com.yasykur.timesheet.DTO.LoginDTO;
 import com.yasykur.timesheet.DTO.RegisterDTO;
 import com.yasykur.timesheet.DTO.SetPasswordDTO;
+import com.yasykur.timesheet.config.JwtSService;
+import com.yasykur.timesheet.config.MyUserDetails;
 import com.yasykur.timesheet.handler.CustomResponse;
 import com.yasykur.timesheet.model.Employee;
 import com.yasykur.timesheet.model.Pin;
@@ -12,6 +14,7 @@ import com.yasykur.timesheet.util.EmployeeStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -27,16 +30,27 @@ public class AuthController {
     private final PinService pinService;
     private final PasswordEncoder passwordEncoder;
     private final CredentialService credentialService;
+    private final MyUserDetails myUserDetails;
+    private final JwtSService jwtSService;
 
     @PostMapping("login")
-    public ResponseEntity<Object> login(LoginDTO loginData) {
+    public ResponseEntity<Object> login(@RequestBody LoginDTO loginData) {
         Employee employee = employeeService.getEmployeeByEmail(loginData.getEmail());
 
-        if (employee == null) {
+        if (employee == null || employee.getStatus() == EmployeeStatus.NOT_ACTIVE) {
             return CustomResponse.generate(HttpStatus.UNAUTHORIZED, "Email or Password Wrong");
         }
 
-        return CustomResponse.generate(HttpStatus.OK, "Login Success");
+        boolean isValid = passwordEncoder.matches(loginData.getPassword(), employee.getCredential().getPassword());
+
+        if (!isValid) {
+            return CustomResponse.generate(HttpStatus.UNAUTHORIZED, "Email or Password Wrong");
+        }
+
+        UserDetails userDetails = myUserDetails.loadUserByUsername(employee.getEmail());
+
+        return CustomResponse.generate(HttpStatus.OK, "Login Success",
+                jwtSService.generateToken(userDetails, employee));
     }
 
 
