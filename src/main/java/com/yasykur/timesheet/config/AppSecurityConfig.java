@@ -3,6 +3,7 @@ package com.yasykur.timesheet.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,6 +36,7 @@ public class AppSecurityConfig {
         httpSecurity.authorizeHttpRequests((request) ->
                 request
                         .requestMatchers("/api/v2/employee/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v2/project/**").hasAuthority("Admin")
                         .requestMatchers("/api/v2/auth/register").hasAuthority("Admin")
                         .anyRequest().permitAll()
         );

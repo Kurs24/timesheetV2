@@ -3,6 +3,7 @@ package com.yasykur.timesheet.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yasykur.timesheet.util.ProjectStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "tb_m_project")
 @Data
+@Builder
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
