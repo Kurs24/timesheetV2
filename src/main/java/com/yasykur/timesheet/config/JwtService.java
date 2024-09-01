@@ -9,21 +9,46 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class JwtSService {
+public class JwtService {
 
     @Value("${jwt.secret}")
     String secret;
 
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public Date getTokenExpireTime(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public boolean verifyToken(String token, UserDetails userDetails) {
+        boolean isExpired = getTokenExpireTime(token).before(new Date());
+        boolean isSameUser = extractUsername(token).equals(userDetails.getUsername());
+        return !isExpired && isSameUser;
+    }
+
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
     public Claims extractAllClaims(String token) {
-        return null;
+        return Jwts.parser()
+                .verifyWith(generateKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public String generateToken(UserDetails userDetails, Employee employee) {
@@ -43,12 +68,12 @@ public class JwtSService {
                 .subject(username)
                 .claims(claims)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
-                .signWith(signingKey())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 5 * 60 * 60))
+                .signWith(generateKey())
                 .compact();
     }
 
-    private Key signingKey() {
+    private SecretKey generateKey() {
         byte[] decodedKey = Base64.getDecoder().decode(secret);
         return Keys.hmacShaKeyFor(decodedKey);
     }

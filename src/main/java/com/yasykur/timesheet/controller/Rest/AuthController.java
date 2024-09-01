@@ -3,12 +3,13 @@ package com.yasykur.timesheet.controller.Rest;
 import com.yasykur.timesheet.DTO.LoginDTO;
 import com.yasykur.timesheet.DTO.RegisterDTO;
 import com.yasykur.timesheet.DTO.SetPasswordDTO;
-import com.yasykur.timesheet.config.JwtSService;
+import com.yasykur.timesheet.config.JwtService;
 import com.yasykur.timesheet.config.MyUserDetails;
 import com.yasykur.timesheet.handler.CustomResponse;
 import com.yasykur.timesheet.model.Employee;
 import com.yasykur.timesheet.model.Pin;
 import com.yasykur.timesheet.model.Role;
+import com.yasykur.timesheet.repository.CredentialRepository;
 import com.yasykur.timesheet.service.*;
 import com.yasykur.timesheet.util.EmployeeStatus;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,13 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final CredentialService credentialService;
     private final MyUserDetails myUserDetails;
-    private final JwtSService jwtSService;
+    private final JwtService jwtService;
+    private final CredentialRepository credentialRepository;
+
+    @GetMapping("ping")
+    public ResponseEntity<Object> ping() {
+        return CustomResponse.generate(HttpStatus.OK, "Pong", credentialRepository.login("registertests@mailnesia.com"));
+    }
 
     @PostMapping("login")
     public ResponseEntity<Object> login(@RequestBody LoginDTO loginData) {
@@ -50,7 +57,7 @@ public class AuthController {
         UserDetails userDetails = myUserDetails.loadUserByUsername(employee.getEmail());
 
         return CustomResponse.generate(HttpStatus.OK, "Login Success",
-                jwtSService.generateToken(userDetails, employee));
+                jwtService.generateToken(userDetails, employee));
     }
 
 
