@@ -5,13 +5,18 @@ import com.yasykur.timesheet.DTO.RegisterDTO;
 import com.yasykur.timesheet.DTO.SetPasswordDTO;
 import com.yasykur.timesheet.config.JwtService;
 import com.yasykur.timesheet.config.MyUserDetails;
+import com.yasykur.timesheet.exception.CustomException;
+import com.yasykur.timesheet.exception.UnauthorizedException;
 import com.yasykur.timesheet.handler.CustomResponse;
+import com.yasykur.timesheet.handler.ResponseUtil;
+import com.yasykur.timesheet.model.ApiResponse;
 import com.yasykur.timesheet.model.Employee;
 import com.yasykur.timesheet.model.Pin;
 import com.yasykur.timesheet.model.Role;
 import com.yasykur.timesheet.repository.CredentialRepository;
 import com.yasykur.timesheet.service.*;
 import com.yasykur.timesheet.util.EmployeeStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,123 +24,51 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 @RestController
 @RequestMapping("api/v2/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final EmployeeService employeeService;
-    private final EmailService emailService;
-    private final RoleService roleService;
-    private final PinService pinService;
-    private final PasswordEncoder passwordEncoder;
-    private final CredentialService credentialService;
-    private final MyUserDetails myUserDetails;
-    private final JwtService jwtService;
-    private final CredentialRepository credentialRepository;
-
-    @GetMapping("ping")
-    public ResponseEntity<Object> ping() {
-        return CustomResponse.generate(HttpStatus.OK, "Pong", credentialRepository.login("registertests@mailnesia.com"));
-    }
+    private final AuthenticationService authenticationService;
 
     @PostMapping("login")
-    public ResponseEntity<Object> login(@RequestBody LoginDTO loginData) {
-        Employee employee = employeeService.getEmployeeByEmail(loginData.getEmail());
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginDTO loginData, HttpServletRequest request) {
 
-        if (employee == null || employee.getStatus() == EmployeeStatus.NOT_ACTIVE) {
-            return CustomResponse.generate(HttpStatus.UNAUTHORIZED, "Email or Password Wrong");
-        }
+        String token = authenticationService.login(loginData);
 
-        boolean isValid = passwordEncoder.matches(loginData.getPassword(), employee.getCredential().getPassword());
+        ApiResponse<String> response =
+                ResponseUtil.success(token, "Login Success",
+                        request.getRequestURI());
 
-        if (!isValid) {
-            return CustomResponse.generate(HttpStatus.UNAUTHORIZED, "Email or Password Wrong");
-        }
-
-        UserDetails userDetails = myUserDetails.loadUserByUsername(employee.getEmail());
-
-        return CustomResponse.generate(HttpStatus.OK, "Login Success",
-                jwtService.generateToken(userDetails, employee));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 
     @PostMapping("register")
     @Transactional
-    public ResponseEntity<Object> register(@RequestBody RegisterDTO registerDTO) {
-        try {
-            Employee foundEmployee = employeeService.getEmployeeByEmail(registerDTO.getEmail());
-
-            if (foundEmployee != null) {
-                return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Email Already used");
-            }
-
-            Role foundRole = roleService.getRoleById(registerDTO.getRoleId());
-
-            if (foundRole == null) {
-                return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Role Not Found");
-            }
-
-            Employee newEmployee = Employee.builder()
-                    .firstName(registerDTO.getFirstName())
-                    .lastName(registerDTO.getLastName())
-                    .email(registerDTO.getEmail())
-                    .phoneNumber(registerDTO.getPhoneNumber())
-                    .status(EmployeeStatus.ACTIVE)
-                    .role(foundRole)
-                    .build();
-
-            Integer idCreated = employeeService.createEmployee(newEmployee);
-
-            Pin createdPin = pinService.createPin(idCreated);
-
-            if (idCreated != 0) {
-                // add link for FE verify
-                emailService.sendMail("Set Password for your Account", registerDTO.getEmail(), registerDTO.getEmail(),
-                        "Create Account Success, Please Set Your Password using this pin " + createdPin.getPin());
-                return CustomResponse.generate(HttpStatus.CREATED, "Successfully Create New Employee");
-            }
-
-            return CustomResponse.generate(HttpStatus.INTERNAL_SERVER_ERROR, "Create new Employee Failed");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody RegisterDTO registerDTO,
+                                                      HttpServletRequest request) {
+        authenticationService.register(registerDTO);
+        ApiResponse<Void> response =
+                ResponseUtil.success(null, "Create new Employee Success", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping("verify-pin/")
-    public ResponseEntity<Object> verifyPin(@RequestParam("pin") String pin) {
-        try {
-            boolean isPinVerified = pinService.verifyPin(pin);
-
-            if (!isPinVerified) {
-                return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Pin Invalid, please Request another Pin");
-            }
-
-            return CustomResponse.generate(HttpStatus.OK, "Pin Verified");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<Object> verifyPin(@RequestParam("pin") String pin, HttpServletRequest request) {
+        authenticationService.verifyPin(pin);
+        ApiResponse<Void> response = ResponseUtil.success(null, "Pin Verified", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("set-password")
     @Transactional
-    public ResponseEntity<Object> setPassword(@RequestBody SetPasswordDTO data, @RequestParam("pin") String pin) {
-        if (data.getOldPassword() != null) {
-            return CustomResponse.generate(HttpStatus.OK, "testing");
-        }
-
-        boolean isPinVerified = pinService.verifyPin(pin);
-
-        if (!isPinVerified) {
-            return CustomResponse.generate(HttpStatus.BAD_REQUEST, "Pin Invalid, please Request another Pin");
-        }
-
-        Pin foundPin = pinService.getPinByPin(pin);
-
-        credentialService.createCredential(foundPin.getId(), passwordEncoder.encode(data.getPassword()));
-
-        pinService.deletePin(pin);
-        return CustomResponse.generate(HttpStatus.OK, "Your password has been set!");
+    public ResponseEntity<Object> setPassword(@RequestBody SetPasswordDTO data, @RequestParam("pin") String pin,
+                                              HttpServletRequest request) {
+        authenticationService.setPassword(data, pin);
+        ApiResponse<Void> response = ResponseUtil.success(null, "Your password has been set!", request.getRequestURI());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
